@@ -3,6 +3,23 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
     <Nullable>enable</Nullable>
+	  <!--NuGet包的本质是一个以nupkg为后缀的zip压缩文件(你可以将后缀改为.zip后解压查看里面的内容),其中包含了编译后的Dll文件以及其他相关文件-->
+	  <!--由于我们是一个 NuGet 工具，不需要被其他项目直接依赖，所以此项目的依赖包不应该传递到下一个项目中。所以请将所有的 NuGet 包资产都声明成私有的，-->
+
+	  <Version>1.0.0</Version>
+	  <AssemblyName>D1yuan.InjectionLogger</AssemblyName>
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <!-- ↓ 新增的属性 -->
+	  <!--
+		<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>-->
+
+	  <!--于我们没有 lib 文件夹，所以 NuGet 会给出警告，NoPackageAnalysis 将阻止这个警告。
+		DevelopmentDependency 是为了说明这是一个开发依赖，设置为 true 将阻止包作为依赖传递给下一个项目。-->
+	  <!-- ↓ 新增的属性 -->
+	  <NoPackageAnalysis>true</NoPackageAnalysis>
+	  <!-- ↓ 新增的属性 -->
+	  <DevelopmentDependency>true</DevelopmentDependency>
+	  <Authors>mahaisong D1yuan</Authors>
   </PropertyGroup>
 
   <ItemGroup>
@@ -10,6 +27,8 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.1.0" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" />
   </ItemGroup>
 
 </Project>
