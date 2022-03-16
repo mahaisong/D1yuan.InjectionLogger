@@ -6,7 +6,7 @@
 	  <!--NuGet包的本质是一个以nupkg为后缀的zip压缩文件(你可以将后缀改为.zip后解压查看里面的内容),其中包含了编译后的Dll文件以及其他相关文件-->
 	  <!--由于我们是一个 NuGet 工具，不需要被其他项目直接依赖，所以此项目的依赖包不应该传递到下一个项目中。所以请将所有的 NuGet 包资产都声明成私有的，-->
 
-	  <Version>1.0.0</Version>
+	  <Version>2.0.0</Version>
 	  <AssemblyName>D1yuan.InjectionLogger</AssemblyName>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	  <Authors>mahaisong D1yuan</Authors>
@@ -27,10 +27,7 @@
 
   <ItemGroup>  
  
-    <PackageReference Include="D1yuan.VersionAuto" Version="1.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+ 
     <PackageReference Include="Microsoft.Build.Framework" Version="17.1.0" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" />
 	  <!-- ↓ 一定要加，不要向下传递依赖 -->
