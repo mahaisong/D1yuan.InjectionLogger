@@ -9,26 +9,32 @@
 	  <Version>1.0.0</Version>
 	  <AssemblyName>D1yuan.InjectionLogger</AssemblyName>
 	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-	  <!-- ↓ 新增的属性 -->
+	  <Authors>mahaisong D1yuan</Authors>
+
+
+	  <!-- ↓ 以下3个属性一定不要加，加了nuget就开发用，引用后不参与编译 -->
 	  <!--
 		<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>-->
 
 	  <!--于我们没有 lib 文件夹，所以 NuGet 会给出警告，NoPackageAnalysis 将阻止这个警告。
 		DevelopmentDependency 是为了说明这是一个开发依赖，设置为 true 将阻止包作为依赖传递给下一个项目。-->
 	  <!-- ↓ 新增的属性 -->
-	  <NoPackageAnalysis>true</NoPackageAnalysis>
+	  <!--<NoPackageAnalysis>true</NoPackageAnalysis>-->
 	  <!-- ↓ 新增的属性 -->
-	  <DevelopmentDependency>true</DevelopmentDependency>
-	  <Authors>mahaisong D1yuan</Authors>
+	  <!--<DevelopmentDependency>true</DevelopmentDependency>-->
+	
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup>  
+ 
     <PackageReference Include="D1yuan.VersionAuto" Version="1.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Build.Framework" Version="17.1.0" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.1.0" />
+	  <!-- ↓ 一定要加，不要向下传递依赖 -->
+	  <PackageReference Update="@(PackageReference)" PrivateAssets="All" />
   </ItemGroup>
 
 </Project>
