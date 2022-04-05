@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Runtime.Versioning;
@@ -8,15 +9,18 @@ using System.Threading;
 
 namespace D1yuan.InjectionLogger
 {
-    public class DLog : IDisposable
+    /// <summary>
+    /// File打印日志
+    /// </summary>
+    public class FLog : IDisposable, ID1Log
     {
         #region 单例
 
         private static object lockobj = new object();
 
-        private static DLog _instance;
+        private static FLog _instance;
 
-        public static DLog Instance
+        public static FLog Instance
         {
 
             get
@@ -27,7 +31,7 @@ namespace D1yuan.InjectionLogger
                     {
                         if (null == _instance)
                         {
-                            _instance = new DLog();
+                            _instance = new FLog();
                         }
 
 
@@ -41,6 +45,7 @@ namespace D1yuan.InjectionLogger
 
         #endregion
 
+        public bool IsEnable { get; set; } = false;
 
         private const int _maxQueuedMessages = 1073741824;
 
@@ -51,7 +56,7 @@ namespace D1yuan.InjectionLogger
         private string _folderPath = string.Empty;
 
         private byte[] line = new byte[1024];
-        public DLog()
+        public FLog()
         {
             _folderPath = Path.Combine(System.Environment.CurrentDirectory, "InjectionLogger");
             if (!Directory.Exists(_folderPath))
@@ -63,7 +68,7 @@ namespace D1yuan.InjectionLogger
             _outputThread = new Thread(ProcessLogQueue)
             {
                 IsBackground = true,
-                Name = "logger queue processing thread"
+                Name = "File logger queue processing thread"
             };
             _outputThread.Start();
         }
@@ -75,28 +80,31 @@ namespace D1yuan.InjectionLogger
         internal virtual void WriteMessage(string entry)
         {
             var bytes = Encoding.UTF8.GetBytes(entry);
-            var dateStr = DateTime.Now.ToString("yyyyMMdd");
+            var dateStr = DateTime.Now.ToString("yyyy_MM_dd_HH");
             if (String.Compare(_curFileName, dateStr) != 0)
             {
                 _curFileName = dateStr;
                 _filePath = Path.Combine(_folderPath, $"{_curFileName}.txt");
                 if (!File.Exists(_filePath))
                 {
-                    using (FileStream fs = new FileStream(_filePath, FileMode.Create, FileAccess.Write))
+                    using (FileStream fs = new FileStream(_filePath, FileMode.Create, FileAccess.Write,FileShare.ReadWrite))
                     {
                         fs.Write(line);
                         fs.Write(bytes);
-
+                        fs.Flush();
                     }
-
+                    //这里因为是Create 所以不需要 fileStream.Seek(0, SeekOrigin.End);//移动到尾部
                 }
 
             }
-            using (FileStream fs = new FileStream(_filePath, FileMode.Append, FileAccess.Write))
+            using (FileStream fs = new FileStream(_filePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite))
             {
                 fs.Write(line);
                 fs.Write(bytes);
+                fs.Flush();
             }
+            //这里因为是append 所以不需要 fileStream.Seek(0, SeekOrigin.End);//移动到尾部
+             
         }
 
 
@@ -109,7 +117,7 @@ namespace D1yuan.InjectionLogger
                     _messageQueue.Add(message);
                     return;
                 }
-                catch (InvalidOperationException) { }
+                catch (Exception ex) { Console.WriteLine(JsonConvert.SerializeObject(ex));  }
             }
 
             // Adding is completed so just log the message
@@ -117,7 +125,7 @@ namespace D1yuan.InjectionLogger
             {
                 WriteMessage(message);
             }
-            catch (Exception) { }
+            catch (InvalidOperationException ex) { Console.WriteLine(JsonConvert.SerializeObject(ex)); }
         }
 
 
@@ -126,6 +134,8 @@ namespace D1yuan.InjectionLogger
         {
             try
             {
+                //不需要线程sleep。
+                //会遍历集合取出数据，一旦发现集合空了，则阻塞自己，直到集合中又有元素了再开始遍历。
                 foreach (string message in _messageQueue.GetConsumingEnumerable())
                 {
                     WriteMessage(message);
@@ -135,9 +145,10 @@ namespace D1yuan.InjectionLogger
             {
                 try
                 {
+                    //不允许任何元素被加入集合；当使用了 CompleteAdding 方法后且集合内没有元素的时候，另一个属性 IsCompleted 此时会为 True，这个属性可以用来判断是否当前集合内的所有元素都被处理完。
                     _messageQueue.CompleteAdding();
                 }
-                catch { }
+                catch (Exception ex) { Console.WriteLine(JsonConvert.SerializeObject(ex)); }
             }
         }
 
@@ -149,7 +160,7 @@ namespace D1yuan.InjectionLogger
             {
                 _outputThread.Join(1500); // with timeout in-case Console is locked by user input
             }
-            catch (ThreadStateException) { }
+            catch (ThreadStateException ex) { Console.WriteLine(JsonConvert.SerializeObject(ex)); }
         }
     }
 }
